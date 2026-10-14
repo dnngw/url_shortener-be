@@ -1,0 +1,6 @@
+CREATE TABLE Links (
+    id SERIAL PRIMARY KEY,
+    short_code VARCHAR(50) NOT NULL UNIQUE,
+    original_url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
