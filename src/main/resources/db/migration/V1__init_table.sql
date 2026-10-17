@@ -1,4 +1,4 @@
-CREATE TABLE Links (
+CREATE TABLE links (
     id SERIAL PRIMARY KEY,
     short_code VARCHAR(50) NOT NULL UNIQUE,
     original_url TEXT NOT NULL,

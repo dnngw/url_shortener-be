@@ -34,7 +34,7 @@ public class LinkRepositoryImpl implements LinkRepository {
     @Override
     public Link findById(Long id) {
         Link data = null;
-        String query = "SELECT * FROM Links WHERE id = (?)";
+        String query = "SELECT * FROM links WHERE id = (?)";
 
         try(Connection conn = dataSource.getConnection();PreparedStatement statement = conn.prepareStatement(query)) {
             statement.setLong(1, id);
@@ -63,7 +63,7 @@ public class LinkRepositoryImpl implements LinkRepository {
     @Override
     public String findByShortCode(String shortCode) {
         String data = null;
-        String query = "SELECT original_url FROM Links WHERE short_code = ?";
+        String query = "SELECT original_url FROM links WHERE short_code = ?";
 
         try(Connection conn = dataSource.getConnection();PreparedStatement statement = conn.prepareStatement(query)) {
             statement.setString(1, shortCode);
@@ -88,7 +88,7 @@ public class LinkRepositoryImpl implements LinkRepository {
     public Long save(Link link) {
         Long idValue = null;
 
-        String query = "INSERT INTO Links (short_code, original_url) VALUES (?, ?)";
+        String query = "INSERT INTO links (short_code, original_url) VALUES (?, ?)";
 
         try(Connection conn = dataSource.getConnection(); PreparedStatement statement = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1,link.getShort_code());
