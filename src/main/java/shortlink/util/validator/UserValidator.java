@@ -42,7 +42,7 @@ public final class UserValidator {
     /*
     * Validate password
     * */
-    public static void validatePassword(String rawPassword) {
+    public static String validatePassword(String rawPassword) {
         /*
         * Password not null
         * password length >= 8
@@ -58,6 +58,8 @@ public final class UserValidator {
         if (rawPassword.getBytes(StandardCharsets.UTF_8).length > 72) {
             throw new IllegalArgumentException("Password too long");
         }
+
+        return rawPassword;
     }
 
 }
