@@ -1,4 +1,7 @@
 package shortlink.repository;
 
-public class RoleRepository {
+import shortlink.model.Role;
+
+public interface RoleRepository {
+    Role findByName (String roleName);
 }

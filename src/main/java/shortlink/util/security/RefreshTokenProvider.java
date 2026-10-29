@@ -8,9 +8,13 @@ import java.util.Base64;
 import java.util.HexFormat;
 
 /*
-* Generate Refresh Token
+* Refresh Token Provider
 * */
-public class RefreshTokenUtil {
+public class RefreshTokenProvider {
+
+    /*
+    * RANDOM value
+    * */
     private static final SecureRandom RANDOM = new SecureRandom();
 
     /*

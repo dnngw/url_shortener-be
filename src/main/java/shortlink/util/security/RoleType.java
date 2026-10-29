@@ -10,13 +10,13 @@ package shortlink.util.security;
 * }
 *
 * */
-public enum Role {
+public enum RoleType {
     ADMIN("admin"),
     USER("user");
 
     private final String dbName;
 
-    Role(String dbName) {
+    RoleType(String dbName) {
         this.dbName = dbName;
     }
 
@@ -28,8 +28,8 @@ public enum Role {
     /*
     * Database role value(String) to enum
     * */
-    public static Role fromDbName(String value) {
-        for(Role role : values()) {
+    public static RoleType fromDbName(String value) {
+        for(RoleType role : values()) {
             if (role.dbName.equals(value)) {
                 return role;
             }

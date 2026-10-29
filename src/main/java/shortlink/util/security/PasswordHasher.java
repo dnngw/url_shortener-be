@@ -1,4 +1,4 @@
-package shortlink.util;
+package shortlink.util.security;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
