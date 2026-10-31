@@ -1,5 +1,6 @@
 package shortlink;
 
+import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,16 +10,27 @@ import shortlink.controller.LinkController;
 import shortlink.config.DatabaseConnection;
 import shortlink.controller.QrCodeController;
 import shortlink.controller.RedirectController;
+import shortlink.filter.AuthFilter;
+import shortlink.filter.RoleFilter;
+import shortlink.repository.LinkRepository;
+import shortlink.repository.RefreshTokenRepository;
+import shortlink.repository.RoleRepository;
+import shortlink.repository.UserRepository;
 import shortlink.repository.impl.LinkRepositoryImpl;
 import shortlink.repository.impl.RefreshTokenRepositoryImpl;
 import shortlink.repository.impl.RoleRepositoryImpl;
 import shortlink.repository.impl.UserRepositoryImpl;
+import shortlink.service.AuthService;
+import shortlink.service.LinkService;
+import shortlink.service.QrCodeService;
 import shortlink.service.impl.AuthServiceImpl;
 import shortlink.service.impl.LinkServiceImpl;
 import shortlink.service.impl.QrCodeServiceImpl;
 import shortlink.config.FlywayInitializer;
 import shortlink.util.security.JwtTokenProvider;
+import shortlink.util.security.RoleType;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
@@ -46,6 +58,9 @@ public class App {
         * */
         FlywayInitializer.migrate();
 
+        /*
+        * Environment Configuration
+        * */
         int port = Integer.parseInt(AppProperties.properties()
                 .getProperty("server.port", "8080"));
         String secret = AppProperties.properties().getProperty("jwt.secret");
@@ -53,26 +68,57 @@ public class App {
         int jwt_refresh_ttl_days = Integer.parseInt(AppProperties.properties().getProperty("jwt.refresh.ttl-days"));
 
         /*
+        * Repository
+        * */
+        DataSource dataSource = DatabaseConnection.getDataSource();
+        UserRepository userRepository = new UserRepositoryImpl(dataSource);
+        RoleRepository roleRepository = new RoleRepositoryImpl(dataSource);
+        LinkRepository linkRepository = new LinkRepositoryImpl(dataSource);
+        RefreshTokenRepository refreshTokenRepository = new RefreshTokenRepositoryImpl(dataSource);
+
+        /*
+         * Security
+         * */
+        JwtTokenProvider jwtTokenProvider = new JwtTokenProvider(secret, jwt_access_ttl_minutes);
+        AuthFilter authFilter = new AuthFilter(jwtTokenProvider);
+        RoleFilter adminOnly = new RoleFilter(RoleType.ADMIN);
+        RoleFilter userOnly = new RoleFilter(RoleType.USER);
+
+
+        /*
+        * Service
+        * */
+        AuthService authService = new AuthServiceImpl(userRepository, roleRepository, refreshTokenRepository,
+                jwtTokenProvider, jwt_refresh_ttl_days, jwt_access_ttl_minutes);
+        LinkService linkService = new LinkServiceImpl(linkRepository);
+        QrCodeService qrCodeService = new QrCodeServiceImpl();
+
+
+
+        /*
         * Server Instance
         * */
-
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         /*
-        * Router Implementation
+        * Public Routes
         * */
-        server.createContext("/",
-                new RedirectController(new LinkServiceImpl(new LinkRepositoryImpl(DatabaseConnection.getDataSource()))));
+        server.createContext("/", new RedirectController(linkService));
+        server.createContext("/api/v1/auth", new AuthController(authService));
 
-        server.createContext("/api/v1/auth", new AuthController(new AuthServiceImpl
-                (new UserRepositoryImpl(DatabaseConnection.getDataSource()), new RoleRepositoryImpl(DatabaseConnection.getDataSource()),
-                        new RefreshTokenRepositoryImpl(DatabaseConnection.getDataSource()), new JwtTokenProvider(secret, jwt_access_ttl_minutes),
-                        jwt_refresh_ttl_days, jwt_access_ttl_minutes)));
+        /*
+        * Protected Routes
+        * */
+        HttpContext linkContext = server.createContext("/api/v1/link", new LinkController(linkService));
+        linkContext.getFilters().add(authFilter);
+        linkContext.getFilters().add(userOnly);
 
 
-        server.createContext("/api/v1/link",
-                new LinkController(new LinkServiceImpl(new LinkRepositoryImpl(DatabaseConnection.getDataSource()))));
-        server.createContext("/api/v1/qr", new QrCodeController(new QrCodeServiceImpl()));
+        HttpContext qrContext = server.createContext("/api/v1/qr", new QrCodeController(qrCodeService));
+        qrContext.getFilters().add(authFilter);
+        qrContext.getFilters().add(userOnly);
+
+
 
         /*
         * Thread pool configuration using virtual thread
