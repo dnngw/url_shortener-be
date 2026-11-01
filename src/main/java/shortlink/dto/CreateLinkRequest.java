@@ -1,26 +1,26 @@
 package shortlink.dto;
 
 public class CreateLinkRequest {
-    private String short_code;
-    private String original_url;
+    private String shortCode;
+    private String originalUrl;
 
 
     public CreateLinkRequest() {};
 
 
-    public String getShort_code() {
-        return short_code;
+    public String getShortCode() {
+        return shortCode;
     }
 
-    public void setShort_code(String short_code) {
-        this.short_code = short_code;
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
     }
 
-    public String getOriginal_url() {
-        return original_url;
+    public String getOriginalUrl() {
+        return originalUrl;
     }
 
-    public void setOriginal_url(String original_url) {
-        this.original_url = original_url;
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
     }
 }

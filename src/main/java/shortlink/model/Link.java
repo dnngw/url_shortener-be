@@ -12,19 +12,24 @@ public class Link {
     private Long id;
 
     /*
+    * User id
+    * */
+    private Long userId;
+
+    /*
     * Short code
     * */
-    private String short_code;
+    private String shortCode;
 
     /*
     * Original url
     * */
-    private String original_url;
+    private String originalUrl;
 
     /*
     * Created at
     * */
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     /*
     * Default Constructor
@@ -35,11 +40,11 @@ public class Link {
     /*
     * Constructor
     * */
-    public Link(Long id, String short_code, String original_url, LocalDateTime created_at) {
+    public Link(Long id, String shortCode, String originalUrl, LocalDateTime createdAt) {
         this.id = id;
-        this.short_code = short_code;
-        this.original_url = original_url;
-        this.created_at = created_at;
+        this.shortCode = shortCode;
+        this.originalUrl = originalUrl;
+        this.createdAt = createdAt;
     }
 
 
@@ -62,12 +67,30 @@ public class Link {
     }
 
     /*
+     * Get user id
+     *
+     * return user id
+     * */
+    public Long getUserId() {
+        return userId;
+    }
+
+    /*
+     * Set user id
+     *
+     * param user id
+     * */
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    /*
      * Get short code
      *
      * return short_code
      * */
-    public String getShort_code() {
-        return short_code;
+    public String getShortCode() {
+        return shortCode;
     }
 
     /*
@@ -75,8 +98,8 @@ public class Link {
      *
      * param short_code
      * */
-    public void setShort_code(String short_code) {
-        this.short_code = short_code;
+    public void setShortCode(String shortCode) {
+        this.shortCode = shortCode;
     }
 
     /*
@@ -84,8 +107,8 @@ public class Link {
      *
      * return original_url
      * */
-    public String getOriginal_url() {
-        return original_url;
+    public String getOriginalUrl() {
+        return originalUrl;
     }
 
 
@@ -94,8 +117,8 @@ public class Link {
      *
      * param original_url
      * */
-    public void setOriginal_url(String original_url) {
-        this.original_url = original_url;
+    public void setOriginalUrl(String originalUrl) {
+        this.originalUrl = originalUrl;
     }
 
     /*
@@ -103,8 +126,8 @@ public class Link {
      *
      * return created_at
      * */
-    public LocalDateTime getCreated_at() {
-        return created_at;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
 
@@ -113,7 +136,7 @@ public class Link {
     *
     * param created_at
     * */
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
