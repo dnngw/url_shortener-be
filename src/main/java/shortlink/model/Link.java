@@ -1,6 +1,6 @@
 package shortlink.model;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /*
 * Link model
@@ -29,7 +29,7 @@ public class Link {
     /*
     * Created at
     * */
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /*
     * Default Constructor
@@ -40,7 +40,7 @@ public class Link {
     /*
     * Constructor
     * */
-    public Link(Long id, String shortCode, String originalUrl, LocalDateTime createdAt) {
+    public Link(Long id, String shortCode, String originalUrl, OffsetDateTime createdAt) {
         this.id = id;
         this.shortCode = shortCode;
         this.originalUrl = originalUrl;
@@ -126,7 +126,7 @@ public class Link {
      *
      * return created_at
      * */
-    public LocalDateTime getCreatedAt() {
+    public OffsetDateTime getCreatedAt() {
         return createdAt;
     }
 
@@ -136,7 +136,7 @@ public class Link {
     *
     * param created_at
     * */
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }

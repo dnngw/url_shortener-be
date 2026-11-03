@@ -93,8 +93,6 @@ public class App {
         LinkService linkService = new LinkServiceImpl(linkRepository);
         QrCodeService qrCodeService = new QrCodeServiceImpl();
 
-
-
         /*
         * Server Instance
         * */
@@ -117,8 +115,6 @@ public class App {
         HttpContext qrContext = server.createContext("/api/v1/qr", new QrCodeController(qrCodeService));
         qrContext.getFilters().add(authFilter);
         qrContext.getFilters().add(userOnly);
-
-
 
         /*
         * Thread pool configuration using virtual thread

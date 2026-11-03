@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -240,7 +241,7 @@ public class LinkRepositoryImpl implements LinkRepository {
         link.setUserId(result.getLong("user_id"));
         link.setShortCode(result.getString("short_code"));
         link.setOriginalUrl(result.getString("original_url"));
-        link.setCreatedAt(result.getTimestamp("created_at").toLocalDateTime());
+        link.setCreatedAt( result.getObject("created_at", OffsetDateTime.class));
         return link;
     }
 
