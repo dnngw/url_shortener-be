@@ -14,11 +14,11 @@ import shortlink.model.Link;
 import shortlink.service.LinkService;
 import shortlink.util.ParseQuery;
 import shortlink.util.http.ApiResponse;
+import shortlink.util.http.RequestBody;
 import shortlink.util.JsonUtil;
 import shortlink.util.http.Response;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class LinkController implements HttpHandler {
@@ -59,7 +59,7 @@ public class LinkController implements HttpHandler {
                 if (subPath.isEmpty()) {
                     getAllLinks(exchange);
 
-                } else if (subPath.matches("/\\d+")) {
+                } else if (subPath.matches("/\\d{1,18}")) {
                     Long linkId = Long.parseLong(subPath.substring(1));
                     getLinkById(exchange, linkId);
 
@@ -77,7 +77,7 @@ public class LinkController implements HttpHandler {
                 break;
 
             case "PATCH" :
-                if (subPath.matches("/\\d+")) {
+                if (subPath.matches("/\\d{1,18}")) {
                     Long linkId = Long.parseLong(subPath.substring(1));
                     updateLink(exchange, linkId);
 
@@ -87,7 +87,7 @@ public class LinkController implements HttpHandler {
                 break;
 
             case "DELETE" :
-                if (subPath.matches("/\\d+")) {
+                if (subPath.matches("/\\d{1,18}")) {
                     Long linkId = Long.parseLong(subPath.substring(1));
                     deleteLink(exchange, linkId);
 
@@ -110,7 +110,9 @@ public class LinkController implements HttpHandler {
             int page = parseIntParam(params.get("page"), DEFAULT_PAGE);
             int size = parseIntParam(params.get("size"), DEFAULT_SIZE);
 
-            PageResponse<Link> data = service.getAllByUserId(userId, page, size);
+            String keyword = params.get("q");
+
+            PageResponse<Link> data = service.getAllByUserId(userId, page, size, keyword);
             Response.response(exchange, 200, new ApiResponse<>(200, "Success get data", data));
 
         }catch (IllegalArgumentException e) {
@@ -147,11 +149,11 @@ public class LinkController implements HttpHandler {
     * Create Link Controller
     * */
     private void createLink(HttpExchange exchange) throws IOException {
-            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             Long userId = (Long) exchange.getAttribute(AuthFilter.ATTR_USER_ID);
 
 
             try{
+                String body = RequestBody.read(exchange);
                 CreateLinkRequest request = JsonUtil.fromJson(body, CreateLinkRequest.class);
 
                 if (request == null) {
@@ -188,10 +190,10 @@ public class LinkController implements HttpHandler {
     * Update link
     * */
     private void updateLink(HttpExchange exchange, Long linkId) throws IOException {
-        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
         Long userId = (Long) exchange.getAttribute(AuthFilter.ATTR_USER_ID);
 
         try{
+            String body = RequestBody.read(exchange);
             UpdateLinkRequest request = JsonUtil.fromJson(body, UpdateLinkRequest.class);
 
             if (request == null) {

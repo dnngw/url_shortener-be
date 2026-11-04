@@ -96,4 +96,40 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             throw new DataAccessException("Failed to access database!");
         }
     }
+
+    /*
+    * Revoke all by user id
+    *
+    * @Return void
+    * */
+    @Override
+    public void revokeAllByUserId(Long userId) {
+        String query = "UPDATE refresh_tokens SET revoked = TRUE WHERE user_id = (?) AND revoked = FALSE";
+
+        try(Connection conn = dataSource.getConnection(); PreparedStatement statement = conn.prepareStatement(query)) {
+            statement.setLong(1, userId);
+
+            statement.executeUpdate();
+
+        }catch(SQLException e) {
+            throw new DataAccessException("failed to access database");
+        }
+    }
+
+    /*
+    * Delete expired and revoked tokens
+    *
+    * Refresh only accepts "revoked = FALSE AND expired_at > now()", so these rows are dead data
+    * */
+    @Override
+    public int deleteExpiredAndRevoked() {
+        String query = "DELETE FROM refresh_tokens WHERE revoked = TRUE OR expired_at <= now()";
+
+        try(Connection conn = dataSource.getConnection(); PreparedStatement statement = conn.prepareStatement(query)) {
+            return statement.executeUpdate();
+
+        }catch(SQLException e) {
+            throw new DataAccessException("failed to access database");
+        }
+    }
 }

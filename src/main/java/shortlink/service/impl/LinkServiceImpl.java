@@ -8,6 +8,7 @@ import shortlink.exception.DuplicateResourceException;
 import shortlink.exception.NotFoundException;
 import shortlink.model.Link;
 import shortlink.repository.LinkRepository;
+import shortlink.util.Pagination;
 import shortlink.service.LinkService;
 import shortlink.util.validator.ShortCodeValidator;
 import shortlink.util.validator.UrlValidator;
@@ -19,9 +20,9 @@ import java.util.List;
 * */
 public class LinkServiceImpl implements LinkService {
     /*
-    * Pagination rules
+    * Search rules (page / size rules are in Pagination)
     * */
-    private static final int MAX_PAGE_SIZE = 100;
+    private static final int MAX_KEYWORD_LENGTH = 100;
 
     /*
     * Repository
@@ -41,19 +42,17 @@ public class LinkServiceImpl implements LinkService {
     * Find links by user with pagination
     * */
     @Override
-    public PageResponse<Link> getAllByUserId(Long userId, int page, int size) {
-        if (page < 1) {
-            throw new IllegalArgumentException("Page must be at leat 1");
+    public PageResponse<Link> getAllByUserId(Long userId, int page, int size, String keyword) {
+        String search = keyword == null ? "" : keyword.trim();
+
+        if (search.length() > MAX_KEYWORD_LENGTH) {
+            throw new IllegalArgumentException("Search keyword must be at most " + MAX_KEYWORD_LENGTH + " characters");
         }
 
-        if (size < 1 || size > MAX_PAGE_SIZE) {
-            throw new IllegalArgumentException("Size must be between 1 and " + MAX_PAGE_SIZE);
-        }
+        int offset = Pagination.offset(page, size);
 
-        int offset = (page - 1) * size;
-
-        List<Link> items = repository.findAllByUserId(userId, size, offset);
-        int totalItems = repository.countByUserId(userId);
+        List<Link> items = repository.findAllByUserId(userId, search, size, offset);
+        int totalItems = repository.countByUserId(userId, search);
 
         return  new PageResponse<>(items, page, size, totalItems);
 
@@ -111,6 +110,14 @@ public class LinkServiceImpl implements LinkService {
     public String getByShortCode(String shortCode) {
 
         return repository.findByShortCode(shortCode);
+    }
+
+    /*
+    * Get link for redirect
+    * */
+    @Override
+    public Link getForRedirect(String shortCode) {
+        return repository.findLinkByShortCode(shortCode);
     }
 
     /*

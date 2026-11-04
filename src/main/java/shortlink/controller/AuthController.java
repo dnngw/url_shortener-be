@@ -5,14 +5,18 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import shortlink.dto.*;
 import shortlink.exception.DuplicateResourceException;
+import shortlink.exception.ForbiddenException;
+import shortlink.exception.TooManyRequestsException;
 import shortlink.exception.UnauthorizedException;
 import shortlink.service.AuthService;
+import shortlink.util.security.AuthRateLimit;
 import shortlink.util.JsonUtil;
 import shortlink.util.http.ApiResponse;
+import shortlink.util.http.ClientIp;
+import shortlink.util.http.RequestBody;
 import shortlink.util.http.Response;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
 /*
 * Auth Controller
@@ -28,9 +32,21 @@ public class AuthController implements HttpHandler {
     * */
     private final AuthService authService;
 
+    /*
+    * Rate limit for login and register
+    * */
+    private final AuthRateLimit rateLimit;
 
-    public AuthController(AuthService authService) {
+    /*
+    * Read the client ip from X-Forwarded-For (app runs behind a reverse proxy)
+    * */
+    private final boolean trustProxy;
+
+
+    public AuthController(AuthService authService, AuthRateLimit rateLimit, boolean trustProxy) {
         this.authService = authService;
+        this.rateLimit = rateLimit;
+        this.trustProxy = trustProxy;
     }
 
 
@@ -74,9 +90,10 @@ public class AuthController implements HttpHandler {
     * Register
     * */
     private void register(HttpExchange exchange) throws IOException {
-        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-
         try{
+            rateLimit.beforeRegister(ClientIp.resolve(exchange, trustProxy));
+
+            String body = RequestBody.read(exchange);
             RegisterRequest request = JsonUtil.fromJson(body, RegisterRequest.class);
 
             if (request == null) {
@@ -84,10 +101,13 @@ public class AuthController implements HttpHandler {
             }
 
             UserResponse data = authService.register(request);
-            Response.response(exchange, 201, new ApiResponse<>(201, "Register Success", data));
+            Response.response(exchange, 201, new ApiResponse<>(201, "Register success, waiting for admin approval", data));
 
+        }catch(TooManyRequestsException e) {
+            tooManyRequests(exchange, e);
         }catch(IllegalStateException e) {
-            Response.response(exchange,404, new ApiResponse<>(404, e.getMessage(), null));
+            // Server misconfiguration (ex: default role missing), not a client error
+            Response.response(exchange,500, new ApiResponse<>(500, "Internal Server Error", null));
         }catch(IllegalArgumentException e) {
             Response.response(exchange,400, new ApiResponse<>(400, e.getMessage(), null));
         }catch(JsonSyntaxException e) {
@@ -104,16 +124,22 @@ public class AuthController implements HttpHandler {
     * Login
     * */
     private void login(HttpExchange exchange) throws IOException {
-        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        String ip = ClientIp.resolve(exchange, trustProxy);
+        String username = null;
 
         try {
+            String body = RequestBody.read(exchange);
             LoginRequest request = JsonUtil.fromJson(body, LoginRequest.class);
 
             if (request == null) {
                 throw new JsonSyntaxException("Bad request!");
             }
 
+            username = request.getUsername();
+            rateLimit.beforeLogin(ip, username);
+
             AuthTokenDto token = authService.login(request);
+            rateLimit.loginSucceeded(ip, username);
 
             // Set refresh token to http cookie
             exchange.getResponseHeaders().add("Set-Cookie", "refresh_token=" + token.getRefreshToken() + "; HttpOnly; Secure; Path=/api/v1/auth; Max-Age=" + token.getRefreshTokenExpiresIn() + "; SameSite=Strict");
@@ -121,10 +147,17 @@ public class AuthController implements HttpHandler {
             AuthResponse data = new AuthResponse(token.getAccessToken(), token.getAccessTokenExpiresIn());
             Response.response(exchange, 200, new ApiResponse<>(200, "Login Success", data));
 
+        }catch(TooManyRequestsException e) {
+            tooManyRequests(exchange, e);
         }catch(IllegalArgumentException e) {
             Response.response(exchange,400, new ApiResponse<>(400, e.getMessage(), null));
         }catch(UnauthorizedException e) {
+            // Wrong username / password, counted for the brute force limit
+            rateLimit.loginFailed(ip, username);
             Response.response(exchange,401, new ApiResponse<>(401, e.getMessage(), null));
+        }catch(ForbiddenException e) {
+            // Account pending approval or deactivated
+            Response.response(exchange,403, new ApiResponse<>(403, e.getMessage(), null));
         }catch(JsonSyntaxException e) {
             Response.response(exchange,400, new ApiResponse<>(400, e.getMessage(), null));
         }catch(Exception e) {
@@ -191,6 +224,12 @@ public class AuthController implements HttpHandler {
         return null;
     }
 
-
-
+    /*
+    * Helper
+    * 429 response with Retry-After header (seconds)
+    * */
+    private void tooManyRequests(HttpExchange exchange, TooManyRequestsException e) throws IOException {
+        exchange.getResponseHeaders().set("Retry-After", String.valueOf(e.getRetryAfterSeconds()));
+        Response.response(exchange, 429, new ApiResponse<>(429, e.getMessage(), null));
+    }
 }

@@ -37,10 +37,11 @@ public class JwtTokenProvider {
     /*
     * Generate access token
     * */
-    public String generateAccessToken(Long userId, String role) {
+    public String generateAccessToken(Long userId, String username, String role) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("username", username)
                 .claim("role", role)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(duration, ChronoUnit.MINUTES)))

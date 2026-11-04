@@ -32,6 +32,11 @@ public class Link {
     private OffsetDateTime createdAt;
 
     /*
+    * Disabled by admin (short code returns 410 instead of redirecting)
+    * */
+    private boolean disabled;
+
+    /*
     * Default Constructor
     * */
     public Link() {};
@@ -138,5 +143,23 @@ public class Link {
     * */
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /*
+    * Is disabled
+    *
+    * return disabled
+    * */
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    /*
+    * Set disabled
+    *
+    * param disabled
+    * */
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
     }
 }

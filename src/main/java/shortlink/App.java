@@ -4,7 +4,12 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import shortlink.config.AdminSeeder;
 import shortlink.config.AppProperties;
+import shortlink.config.RefreshTokenCleaner;
+import shortlink.controller.AdminLinkController;
+import shortlink.controller.AdminStatsController;
+import shortlink.controller.AdminUserController;
 import shortlink.controller.AuthController;
 import shortlink.controller.LinkController;
 import shortlink.config.DatabaseConnection;
@@ -20,13 +25,20 @@ import shortlink.repository.impl.LinkRepositoryImpl;
 import shortlink.repository.impl.RefreshTokenRepositoryImpl;
 import shortlink.repository.impl.RoleRepositoryImpl;
 import shortlink.repository.impl.UserRepositoryImpl;
+import shortlink.service.AdminLinkService;
+import shortlink.service.AdminStatsService;
+import shortlink.service.AdminUserService;
 import shortlink.service.AuthService;
 import shortlink.service.LinkService;
 import shortlink.service.QrCodeService;
+import shortlink.service.impl.AdminLinkServiceImpl;
+import shortlink.service.impl.AdminStatsServiceImpl;
+import shortlink.service.impl.AdminUserServiceImpl;
 import shortlink.service.impl.AuthServiceImpl;
 import shortlink.service.impl.LinkServiceImpl;
 import shortlink.service.impl.QrCodeServiceImpl;
 import shortlink.config.FlywayInitializer;
+import shortlink.util.security.AuthRateLimit;
 import shortlink.util.security.JwtTokenProvider;
 import shortlink.util.security.RoleType;
 
@@ -66,6 +78,8 @@ public class App {
         String secret = AppProperties.properties().getProperty("jwt.secret");
         int jwt_access_ttl_minutes = Integer.parseInt(AppProperties.properties().getProperty("jwt.access.ttl-minutes"));
         int jwt_refresh_ttl_days = Integer.parseInt(AppProperties.properties().getProperty("jwt.refresh.ttl-days"));
+        // true when the app runs behind a reverse proxy, client ip is then read from X-Forwarded-For
+        boolean trustProxy = Boolean.parseBoolean(AppProperties.properties().getProperty("server.trust-proxy", "false"));
 
         /*
         * Repository
@@ -75,6 +89,16 @@ public class App {
         RoleRepository roleRepository = new RoleRepositoryImpl(dataSource);
         LinkRepository linkRepository = new LinkRepositoryImpl(dataSource);
         RefreshTokenRepository refreshTokenRepository = new RefreshTokenRepositoryImpl(dataSource);
+
+        /*
+        * Seed first admin account (only when there is no admin yet)
+        * */
+        new AdminSeeder(userRepository, roleRepository).seed(AppProperties.properties());
+
+        /*
+        * Delete expired / revoked refresh tokens on start and every 24 hours
+        * */
+        new RefreshTokenCleaner(refreshTokenRepository).start();
 
         /*
          * Security
@@ -92,17 +116,25 @@ public class App {
                 jwtTokenProvider, jwt_refresh_ttl_days, jwt_access_ttl_minutes);
         LinkService linkService = new LinkServiceImpl(linkRepository);
         QrCodeService qrCodeService = new QrCodeServiceImpl();
+        AdminUserService adminUserService = new AdminUserServiceImpl(userRepository, refreshTokenRepository);
+        AdminStatsService adminStatsService = new AdminStatsServiceImpl(userRepository, linkRepository);
+        AdminLinkService adminLinkService = new AdminLinkServiceImpl(linkRepository);
 
         /*
         * Server Instance
         * */
-        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        // server.host = 127.0.0.1 → only reachable from the same machine (behind a reverse proxy)
+        // empty → every network interface (development)
+        String host = AppProperties.properties().getProperty("server.host", "").trim();
+        InetSocketAddress address = host.isEmpty() ? new InetSocketAddress(port) : new InetSocketAddress(host, port);
+
+        HttpServer server = HttpServer.create(address, 0);
 
         /*
         * Public Routes
         * */
         server.createContext("/", new RedirectController(linkService));
-        server.createContext("/api/v1/auth", new AuthController(authService));
+        server.createContext("/api/v1/auth", new AuthController(authService, new AuthRateLimit(), trustProxy));
 
         /*
         * Protected Routes
@@ -117,6 +149,21 @@ public class App {
         qrContext.getFilters().add(userOnly);
 
         /*
+        * Admin Routes
+        * */
+        HttpContext adminUserContext = server.createContext("/api/v1/admin/users", new AdminUserController(adminUserService));
+        adminUserContext.getFilters().add(authFilter);
+        adminUserContext.getFilters().add(adminOnly);
+
+        HttpContext adminStatsContext = server.createContext("/api/v1/admin/stats", new AdminStatsController(adminStatsService));
+        adminStatsContext.getFilters().add(authFilter);
+        adminStatsContext.getFilters().add(adminOnly);
+
+        HttpContext adminLinkContext = server.createContext("/api/v1/admin/links", new AdminLinkController(adminLinkService));
+        adminLinkContext.getFilters().add(authFilter);
+        adminLinkContext.getFilters().add(adminOnly);
+
+        /*
         * Thread pool configuration using virtual thread
         * */
         server.setExecutor(Executors.newVirtualThreadPerTaskExecutor());
@@ -124,7 +171,7 @@ public class App {
         /*
         * Run server
         * */
-        logger.info("Server running on port : {}", port);
+        logger.info("Server running on {}:{}", host.isEmpty() ? "0.0.0.0" : host, port);
         server.start();
 
 

@@ -21,6 +21,10 @@ public class Response {
         String JSONBody = JsonUtil.toJson(response);
         byte[] bytes = JSONBody.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+        // Browser must not guess another content type from the body
+        exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+        // API data (tokens, user data) must not be stored by browser / proxy caches
+        exchange.getResponseHeaders().set("Cache-Control", "no-store");
         exchange.sendResponseHeaders(status, bytes.length);
         try(OutputStream os = exchange.getResponseBody()) {
             os.write(bytes);

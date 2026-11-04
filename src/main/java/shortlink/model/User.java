@@ -1,5 +1,7 @@
 package shortlink.model;
 
+import shortlink.util.security.UserStatus;
+
 import java.time.OffsetDateTime;
 
 /*
@@ -30,6 +32,11 @@ public class User {
     * Created At
     * */
     private OffsetDateTime createdAt;
+
+    /*
+    * Account status (pending, active, inactive)
+    * */
+    private UserStatus status;
 
     /*
     * Default Constructor
@@ -115,5 +122,19 @@ public class User {
      * */
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /*
+    * Get status
+    * */
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    /*
+    * Set status
+    * */
+    public void setStatus(UserStatus status) {
+        this.status = status;
     }
 }

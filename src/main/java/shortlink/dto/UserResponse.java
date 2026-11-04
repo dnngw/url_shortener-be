@@ -26,6 +26,11 @@ public class UserResponse {
     * */
     private OffsetDateTime createdAt;
 
+    /*
+    * Account status (pending, active, inactive)
+    * */
+    private String status;
+
 
     /*
     * Constructor
@@ -96,5 +101,27 @@ public class UserResponse {
      * */
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    /*
+    * Parameter constructor with status
+    * */
+    public UserResponse(Long id, String username, String role, String status, OffsetDateTime createdAt) {
+        this(id, username, role, createdAt);
+        this.status = status;
+    }
+
+    /*
+    * Get status
+    * */
+    public String getStatus() {
+        return status;
+    }
+
+    /*
+    * Set status
+    * */
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
