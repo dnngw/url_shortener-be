@@ -1,0 +1,67 @@
+# ===== Maven =====
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ===== Config / secrets =====
+# Simpan hanya application.properties.example di repo
+application.properties
+*.env
+.env
+.env.*
+!.env.example
+
+# ===== Compiled / packaged =====
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== IDE: IntelliJ IDEA =====
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ===== IDE: Eclipse =====
+.classpath
+.project
+.settings/
+bin/
+.factorypath
+
+# ===== IDE: VS Code =====
+.vscode/
+
+# ===== IDE: NetBeans =====
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ===== OS =====
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# ===== Misc =====
+*.tmp
+*.swp
+*~
