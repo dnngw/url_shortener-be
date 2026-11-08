@@ -16,6 +16,7 @@ import shortlink.config.DatabaseConnection;
 import shortlink.controller.QrCodeController;
 import shortlink.controller.RedirectController;
 import shortlink.filter.AuthFilter;
+import shortlink.filter.CorsFilter;
 import shortlink.filter.RoleFilter;
 import shortlink.repository.LinkRepository;
 import shortlink.repository.RefreshTokenRepository;
@@ -107,6 +108,8 @@ public class App {
         AuthFilter authFilter = new AuthFilter(jwtTokenProvider);
         RoleFilter adminOnly = new RoleFilter(RoleType.ADMIN);
         RoleFilter userOnly = new RoleFilter(RoleType.USER);
+        // Frontend origins allowed to call the API, comma separated (ex: http://localhost:5173)
+        CorsFilter corsFilter = new CorsFilter(AppProperties.properties().getProperty("cors.allowed-origins", ""));
 
 
         /*
@@ -134,17 +137,20 @@ public class App {
         * Public Routes
         * */
         server.createContext("/", new RedirectController(linkService));
-        server.createContext("/api/v1/auth", new AuthController(authService, new AuthRateLimit(), trustProxy));
+        HttpContext authContext = server.createContext("/api/v1/auth", new AuthController(authService, new AuthRateLimit(), trustProxy));
+        authContext.getFilters().add(corsFilter);
 
         /*
         * Protected Routes
         * */
         HttpContext linkContext = server.createContext("/api/v1/link", new LinkController(linkService));
+        linkContext.getFilters().add(corsFilter);
         linkContext.getFilters().add(authFilter);
         linkContext.getFilters().add(userOnly);
 
 
         HttpContext qrContext = server.createContext("/api/v1/qr", new QrCodeController(qrCodeService));
+        qrContext.getFilters().add(corsFilter);
         qrContext.getFilters().add(authFilter);
         qrContext.getFilters().add(userOnly);
 
@@ -152,14 +158,17 @@ public class App {
         * Admin Routes
         * */
         HttpContext adminUserContext = server.createContext("/api/v1/admin/users", new AdminUserController(adminUserService));
+        adminUserContext.getFilters().add(corsFilter);
         adminUserContext.getFilters().add(authFilter);
         adminUserContext.getFilters().add(adminOnly);
 
         HttpContext adminStatsContext = server.createContext("/api/v1/admin/stats", new AdminStatsController(adminStatsService));
+        adminStatsContext.getFilters().add(corsFilter);
         adminStatsContext.getFilters().add(authFilter);
         adminStatsContext.getFilters().add(adminOnly);
 
         HttpContext adminLinkContext = server.createContext("/api/v1/admin/links", new AdminLinkController(adminLinkService));
+        adminLinkContext.getFilters().add(corsFilter);
         adminLinkContext.getFilters().add(authFilter);
         adminLinkContext.getFilters().add(adminOnly);
 

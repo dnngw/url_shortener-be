@@ -6,6 +6,8 @@ server.port=
 server.host=
 # true only when the app runs behind a reverse proxy (client ip is read from X-Forwarded-For)
 server.trust-proxy=false
+# Frontend origins allowed to call the API (CORS), comma separated
+cors.allowed-origins=http://localhost:5173
 
 # Base64 encoded secret for signing JWT (at least 256 bit)
 jwt.secret=
