@@ -2,6 +2,8 @@ package shortlink.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.dto.AdminStatsResponse;
 import shortlink.exception.DataAccessException;
 import shortlink.service.AdminStatsService;
@@ -16,6 +18,11 @@ import java.io.IOException;
 * GET /api/v1/admin/stats
 * */
 public class AdminStatsController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(AdminStatsController.class);
+
 
     /*
     * BASE PATH
@@ -56,9 +63,11 @@ public class AdminStatsController implements HttpHandler {
             Response.response(exchange, 200, new ApiResponse<>(200, "Success get data", data));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }

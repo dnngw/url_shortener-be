@@ -3,6 +3,8 @@ package shortlink.controller;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.dto.CreateLinkRequest;
 import shortlink.dto.PageResponse;
 import shortlink.dto.UpdateLinkRequest;
@@ -22,6 +24,11 @@ import java.io.IOException;
 import java.util.Map;
 
 public class LinkController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(LinkController.class);
+
 
     /*
     * BASE PATH
@@ -119,9 +126,11 @@ public class LinkController implements HttpHandler {
             Response.response(exchange, 400, new ApiResponse<>(400, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
 
@@ -141,6 +150,7 @@ public class LinkController implements HttpHandler {
             Response.response(exchange, 400, new ApiResponse<>(400, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
@@ -165,7 +175,7 @@ public class LinkController implements HttpHandler {
                 Response.response(exchange, 201, res);
 
             }catch (JsonSyntaxException e) {
-                ApiResponse<Link> res = new ApiResponse<>(400, e.getMessage(), null);
+                ApiResponse<Link> res = new ApiResponse<>(400, "Invalid JSON body", null);
                 Response.response(exchange, 400, res);
 
             }catch (DuplicateResourceException e){
@@ -173,6 +183,7 @@ public class LinkController implements HttpHandler {
                 Response.response(exchange, 409, res);
 
             }catch (DataAccessException e) {
+                logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
                 ApiResponse<Link> res = new ApiResponse<>(500, e.getMessage(), null);
                 Response.response(exchange, 500, res);
 
@@ -181,6 +192,7 @@ public class LinkController implements HttpHandler {
                 Response.response(exchange, 400, res);
 
             }catch (Exception e) {
+                logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
                 ApiResponse<Link> res = new ApiResponse<>(500, "Internal server error", null);
                 Response.response(exchange, 500, res);
             }
@@ -205,10 +217,11 @@ public class LinkController implements HttpHandler {
             Response.response(exchange,200, new ApiResponse<>(200, "Success update data", null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (JsonSyntaxException e) {
-            Response.response(exchange, 400, new ApiResponse<>(400, e.getMessage(), null));
+            Response.response(exchange, 400, new ApiResponse<>(400, "Invalid JSON body", null));
 
         }catch(NotFoundException e) {
             Response.response(exchange, 404, new ApiResponse<>(404, "Link not found", null));
@@ -217,6 +230,7 @@ public class LinkController implements HttpHandler {
             Response.response(exchange, 400, new ApiResponse<>(400, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
@@ -235,9 +249,11 @@ public class LinkController implements HttpHandler {
             Response.response(exchange, 404, new ApiResponse<>(404, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }

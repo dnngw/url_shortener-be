@@ -2,6 +2,8 @@ package shortlink.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.exception.NotFoundException;
 import shortlink.model.Link;
 import shortlink.service.LinkService;
@@ -13,6 +15,11 @@ import java.io.IOException;
 import java.util.Locale;
 
 public class RedirectController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(RedirectController.class);
+
 
     /*
     * Service
@@ -71,6 +78,7 @@ public class RedirectController implements HttpHandler {
                 }
 
             }catch (Exception e) {
+                logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
                 if (BrowserResponse.wantsHtml(exchange)) {
                     BrowserResponse.linkUnavailable(exchange, "error", code);
                 } else {

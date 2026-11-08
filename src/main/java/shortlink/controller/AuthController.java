@@ -3,6 +3,8 @@ package shortlink.controller;
 import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.dto.*;
 import shortlink.exception.DuplicateResourceException;
 import shortlink.exception.ForbiddenException;
@@ -22,6 +24,11 @@ import java.io.IOException;
 * Auth Controller
 * */
 public class AuthController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     /*
     * BASE_PATH
     * */
@@ -107,14 +114,16 @@ public class AuthController implements HttpHandler {
             tooManyRequests(exchange, e);
         }catch(IllegalStateException e) {
             // Server misconfiguration (ex: default role missing), not a client error
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange,500, new ApiResponse<>(500, "Internal Server Error", null));
         }catch(IllegalArgumentException e) {
             Response.response(exchange,400, new ApiResponse<>(400, e.getMessage(), null));
         }catch(JsonSyntaxException e) {
-            Response.response(exchange,400, new ApiResponse<>(400, e.getMessage(), null));
+            Response.response(exchange,400, new ApiResponse<>(400, "Invalid JSON body", null));
         }catch(DuplicateResourceException e) {
             Response.response(exchange,409, new ApiResponse<>(409, e.getMessage(), null));
         }catch(Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange,500, new ApiResponse<>(500, "Internal Server Error", null));
         }
 
@@ -159,8 +168,9 @@ public class AuthController implements HttpHandler {
             // Account pending approval or deactivated
             Response.response(exchange,403, new ApiResponse<>(403, e.getMessage(), null));
         }catch(JsonSyntaxException e) {
-            Response.response(exchange,400, new ApiResponse<>(400, e.getMessage(), null));
+            Response.response(exchange,400, new ApiResponse<>(400, "Invalid JSON body", null));
         }catch(Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange,500, new ApiResponse<>(500, "Internal Server Error", null));
         }
     }
@@ -184,6 +194,7 @@ public class AuthController implements HttpHandler {
             Response.response(exchange,401, new ApiResponse<>(401, e.getMessage(), null));
         }
         catch(Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange,500, new ApiResponse<>(500, "Internal Server Error", null));
         }
     }
@@ -204,6 +215,7 @@ public class AuthController implements HttpHandler {
         }catch(UnauthorizedException e) {
             Response.response(exchange,401, new ApiResponse<>(401, e.getMessage(), null));
         }catch(Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange,500, new ApiResponse<>(500, "Internal Server Error", null));
         }
     }

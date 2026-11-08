@@ -2,6 +2,8 @@ package shortlink.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.service.QrCodeService;
 import shortlink.util.http.ApiResponse;
 import shortlink.util.ParseQuery;
@@ -12,6 +14,11 @@ import java.io.IOException;
 import java.util.Map;
 
 public class QrCodeController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(QrCodeController.class);
+
     private final QrCodeService service;
 
     public QrCodeController(QrCodeService service) {
@@ -55,6 +62,7 @@ public class QrCodeController implements HttpHandler {
             Response.response(exchange, 400, res);
 
         }catch(Exception e){
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             ApiResponse<String> res = new ApiResponse<>(500, "Internal server error", null);
             Response.response(exchange, 500, res);
 

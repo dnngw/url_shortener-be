@@ -2,6 +2,8 @@ package shortlink.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.dto.AdminLinkResponse;
 import shortlink.dto.PageResponse;
 import shortlink.exception.DataAccessException;
@@ -24,6 +26,11 @@ import java.util.regex.Pattern;
 * PATCH /api/v1/admin/links/{id}/enable
 * */
 public class AdminLinkController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(AdminLinkController.class);
+
 
     /*
     * BASE PATH
@@ -102,9 +109,11 @@ public class AdminLinkController implements HttpHandler {
             Response.response(exchange, 400, new ApiResponse<>(400, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
@@ -129,9 +138,11 @@ public class AdminLinkController implements HttpHandler {
             Response.response(exchange, 409, new ApiResponse<>(409, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }

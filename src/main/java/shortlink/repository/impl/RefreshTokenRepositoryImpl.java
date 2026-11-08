@@ -48,7 +48,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             statement.executeUpdate();
 
         }catch (SQLException e){
-            throw new DataAccessException("failed to access database");
+            throw new DataAccessException("failed to access database", e);
         }
 
     }
@@ -69,7 +69,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             statement.executeUpdate();
 
         }catch(SQLException e) {
-            throw new DataAccessException("failed to access database");
+            throw new DataAccessException("failed to access database", e);
         }
     };
 
@@ -93,7 +93,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             throw new UnauthorizedException("Invalid refresh token");
 
         }catch(SQLException e){
-            throw new DataAccessException("Failed to access database!");
+            throw new DataAccessException("Failed to access database!", e);
         }
     }
 
@@ -112,7 +112,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             statement.executeUpdate();
 
         }catch(SQLException e) {
-            throw new DataAccessException("failed to access database");
+            throw new DataAccessException("failed to access database", e);
         }
     }
 
@@ -129,7 +129,7 @@ public class RefreshTokenRepositoryImpl implements RefreshTokenRepository {
             return statement.executeUpdate();
 
         }catch(SQLException e) {
-            throw new DataAccessException("failed to access database");
+            throw new DataAccessException("failed to access database", e);
         }
     }
 }

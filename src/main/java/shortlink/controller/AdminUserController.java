@@ -2,6 +2,8 @@ package shortlink.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortlink.dto.AdminUserResponse;
 import shortlink.dto.PageResponse;
 import shortlink.exception.DataAccessException;
@@ -27,6 +29,11 @@ import java.util.regex.Pattern;
 * DELETE /api/v1/admin/users/{id}            (reject pending registration)
 * */
 public class AdminUserController implements HttpHandler {
+    /*
+    * Logger
+    * */
+    private static final Logger logger = LoggerFactory.getLogger(AdminUserController.class);
+
 
     /*
     * BASE PATH
@@ -117,9 +124,11 @@ public class AdminUserController implements HttpHandler {
             Response.response(exchange, 400, new ApiResponse<>(400, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
@@ -133,9 +142,11 @@ public class AdminUserController implements HttpHandler {
             Response.response(exchange, 200, new ApiResponse<>(200, "Success get data", data));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
@@ -170,9 +181,11 @@ public class AdminUserController implements HttpHandler {
             Response.response(exchange, 409, new ApiResponse<>(409, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
@@ -192,9 +205,11 @@ public class AdminUserController implements HttpHandler {
             Response.response(exchange, 409, new ApiResponse<>(409, e.getMessage(), null));
 
         }catch (DataAccessException e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, e.getMessage(), null));
 
         }catch (Exception e) {
+            logger.error("Request failed: {} {}", exchange.getRequestMethod(), exchange.getRequestURI().getPath(), e);
             Response.response(exchange, 500, new ApiResponse<>(500, "Internal server error", null));
         }
     }
